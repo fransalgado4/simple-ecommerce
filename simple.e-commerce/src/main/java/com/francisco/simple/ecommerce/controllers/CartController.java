@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/store")
+@RequestMapping("/store/carts")
 public class CartController {
     private final CartServiceImpl cartService;
 
@@ -24,13 +24,8 @@ public class CartController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getCart(@PathVariable String id) {
-        Optional<Cart> cart = cartService.getCartById(id);
-
-        if(cart.isPresent()) {
-            return new ResponseEntity<>(cart, HttpStatus.OK);
-        } else {
-            throw  new ResourceNotFoundException("Cart " + id + " not found");
-        }
+        Cart cart = cartService.getCartById(id);
+        return new ResponseEntity<>(cart, HttpStatus.OK);
     }
 
     @PostMapping
@@ -38,7 +33,7 @@ public class CartController {
         return new ResponseEntity<>(cartService.createCart(), HttpStatus.OK);
     }
 
-    @PutMapping("/add-product-to-cart/{id}")
+    @PutMapping("/{id}/product")
     public ResponseEntity<?> addProductToCart(@PathVariable String id, @RequestBody Product product) {
         try {
             List<Product> products = new ArrayList<>();
@@ -49,7 +44,7 @@ public class CartController {
         }
     }
 
-    @PutMapping("/add-products-to-cart/{id}")
+    @PutMapping("/{id}/products")
     public ResponseEntity<?> addProductsToCart(@PathVariable String id, @RequestBody List<Product> products) {
         try {
             return new ResponseEntity<>(cartService.addProductsToCart(id, products), HttpStatus.OK);

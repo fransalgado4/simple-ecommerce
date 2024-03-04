@@ -1,7 +1,7 @@
 package com.francisco.simple.ecommerce.repositories;
 
 import com.francisco.simple.ecommerce.exceptions.ResourceNotFoundException;
-import com.francisco.simple.ecommerce.interfaces.CartRepository;
+import com.francisco.simple.ecommerce.interfaces.CartRepositoryInterface;
 import com.francisco.simple.ecommerce.models.Cart;
 import com.francisco.simple.ecommerce.models.Product;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 
 @Repository
-public class CartRepositoryImpl implements CartRepository {
+public class CartRepositoryImpl implements CartRepositoryInterface {
     private final TaskScheduler taskScheduler;
 
     @Getter
@@ -35,20 +35,18 @@ public class CartRepositoryImpl implements CartRepository {
         return cart;
     }
 
-    public Optional<Cart> getCartById(String id) {
-        return carts.stream().filter(c -> c.getId().equals(id)).findFirst();
+    public Cart getCartById(String id) {
+        return carts.stream().filter(c -> c.getId().equals(id)).findFirst().orElseThrow(
+                () -> new ResourceNotFoundException("Cart with id " + id + " not found")
+        );
     }
 
-    public Optional<Cart> addProductsToCart(String cartId, List<Product> productsToAdd) {
-        Optional<Cart> optionalCart = getCartById(cartId);
-
-        if(optionalCart.isPresent()) {
-            Cart cart = optionalCart.get();
+    public Cart addProductsToCart(Cart cart, List<Product> productsToAdd) {
             List<Product> existingProducts = cart.getProducts();
             List<Product> newProducts = new ArrayList<>(existingProducts);
 
             for (Product newProduct : productsToAdd) {
-                Optional<Product> existingProduct = hasCartThisProduct(cartId, newProduct);
+                Optional<Product> existingProduct = findProductInCart(cart, newProduct);
 
                 if (existingProduct.isEmpty()) {
                     Product product = new Product(newProducts.size() + 1, newProduct.getDescription(), newProduct.getAmount());
@@ -58,55 +56,38 @@ public class CartRepositoryImpl implements CartRepository {
                     product.setAmount(product.getAmount() + newProduct.getAmount());
                 }
             }
+
             rescheduleCartDeletion(cart);
             cart.setProducts(newProducts);
 
-        } else {
-            throw new ResourceNotFoundException("Cart " + cartId + " not found");
-        }
-
-        return optionalCart;
+        return cart;
     }
 
-    public String deleteCart(String cartId) {
-        Optional<Cart> optionalCart = getCartById(cartId);
+    public String deleteCart(Cart cart) {
+        String cartRemoveId = cart.getId();
 
-        if(optionalCart.isPresent()) {
-            String cartRemoveId = optionalCart.get().getId();
+        carts.removeIf(cartRemove -> cartRemove.getId().equals(cartRemoveId));
+        cancelScheduledTask(cartRemoveId);
 
-            carts.removeIf(cart -> cart.getId().equals(cartRemoveId));
-            cancelScheduledTask(cartId);
-
-            return "The cart " + cartRemoveId + " has been deleted";
-        } else {
-            throw new ResourceNotFoundException("Cart " + cartId + " not found");
-        }
+        return "The cart " + cartRemoveId + " has been deleted";
     }
 
-    private Optional<Product> hasCartThisProduct(String cartId, Product product) {
-        Optional<Cart> optionalCart = getCartById(cartId);
+    private Optional<Product> findProductInCart(Cart cart, Product product) {
+        List<Product> existingProducts = cart.getProducts();
 
-        if(optionalCart.isPresent()) {
-            Cart cart = optionalCart.get();
-            List<Product> existingProducts = cart.getProducts();
-
-            for (Product existingProduct : existingProducts) {
-                if (existingProduct.getDescription().equalsIgnoreCase(product.getDescription())) {
-                    return Optional.of(existingProduct);
-                }
+        for (Product existingProduct : existingProducts) {
+            if (existingProduct.getDescription().equalsIgnoreCase(product.getDescription())) {
+                return Optional.of(existingProduct);
             }
-
-            return Optional.empty();
-        } else {
-            throw new ResourceNotFoundException("Cart " + cartId + " not found");
         }
+
+        return Optional.empty();
     }
 
     private void scheduleCartDeletion(Cart cart) {
-        String cartId = cart.getId();
         Date dateToExpire = new Date(System.currentTimeMillis() + Duration.ofMinutes(10).toMillis());
-        ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> deleteCart(cartId), dateToExpire);
-        cartDeletionTasks.put(cartId, scheduledFuture);
+        ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> deleteCart(cart), dateToExpire);
+        cartDeletionTasks.put(cart.getId(), scheduledFuture);
     }
 
     private void rescheduleCartDeletion(Cart cart) {

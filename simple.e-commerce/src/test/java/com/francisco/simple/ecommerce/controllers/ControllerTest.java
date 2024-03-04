@@ -36,7 +36,7 @@ public class ControllerTest {
         String cartId = "1234354";
         Cart mockCart = new Cart();
 
-        when(cartService.getCartById(cartId)).thenReturn(Optional.of(mockCart));
+        when(cartService.getCartById(cartId)).thenReturn(mockCart);
 
         ResponseEntity<?> responseEntity = cartController.getCart(cartId);
 
@@ -49,7 +49,7 @@ public class ControllerTest {
         String cartId = "1234354";
         Cart mockCart = new Cart();
 
-        when(cartService.getCartById(cartId)).thenReturn(Optional.empty());
+        when(cartService.getCartById(cartId)).thenThrow(new ResourceNotFoundException("Cart with id " + cartId + " not found"));
 
         ResponseEntity<?> responseEntity = cartController.getCart(cartId);
 
@@ -65,7 +65,7 @@ public class ControllerTest {
         List<Product> products = new ArrayList<>();
         products.add(mockProduct);
 
-        when(cartService.addProductsToCart(cartId, products)).thenReturn(Optional.of(mockCart));
+        when(cartService.addProductsToCart(cartId, products)).thenReturn(mockCart);
 
         ResponseEntity<?> responseEntity = cartController.addProductsToCart(cartId, products);
 

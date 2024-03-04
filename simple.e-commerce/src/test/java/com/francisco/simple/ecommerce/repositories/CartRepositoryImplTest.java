@@ -37,17 +37,21 @@ public class CartRepositoryImplTest {
     @Test
     void testGetCartById() {
         Cart cart = cartRepository.createCart();
-        Optional<Cart> foundCart = cartRepository.getCartById(cart.getId());
+        Cart foundCart = cartRepository.getCartById(cart.getId());
 
-        assertTrue(foundCart.isPresent());
-        assertEquals(cart, foundCart.get());
+        assertNotNull(foundCart);
+        assertEquals(cart, foundCart);
     }
 
     @Test
     void testGetCartByIdNotFound() {
-        Optional<Cart> foundCart = cartRepository.getCartById("no-id");
+        String cartIdNotValid = "no-id";
 
-        assertTrue(foundCart.isEmpty());
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            cartRepository.getCartById(cartIdNotValid);
+        });
+
+        assertEquals("Cart with id " + cartIdNotValid + " not found", exception.getMessage());
     }
 
     @Test
@@ -56,28 +60,17 @@ public class CartRepositoryImplTest {
         List<Product> products = new ArrayList<>();
         products.add(new Product(1, "Product1", 12));
 
-        Optional<Cart> updateCart = cartRepository.addProductsToCart(cart.getId(), products);
+        Cart updateCart = cartRepository.addProductsToCart(cart, products);
 
-        assertTrue(updateCart.isPresent());
-        assertTrue(updateCart.get().getProducts().containsAll(products));
-        assertEquals(products, updateCart.get().getProducts());
-    }
-
-    @Test
-    void testAddProductsToCartNotFound() {
-        String cartId = "no-id";
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            cartRepository.addProductsToCart(cartId, new ArrayList<>());
-        });
-
-        assertEquals("Cart " + cartId + " not found", exception.getMessage());
+        assertNotNull(updateCart);
+        assertTrue(updateCart.getProducts().containsAll(products));
+        assertEquals(products, updateCart.getProducts());
     }
 
     @Test
     void testDeleteCart() {
         Cart cart = cartRepository.createCart();
-        String result = cartRepository.deleteCart(cart.getId());
+        String result = cartRepository.deleteCart(cart);
 
         assertEquals("The cart " + cart.getId() + " has been deleted", result);
         assertTrue(cartRepository.getCarts().isEmpty());
