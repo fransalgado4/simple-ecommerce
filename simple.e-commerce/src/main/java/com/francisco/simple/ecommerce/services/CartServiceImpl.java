@@ -5,7 +5,6 @@ import com.francisco.simple.ecommerce.interfaces.CartServiceInterface;
 import com.francisco.simple.ecommerce.models.Cart;
 import com.francisco.simple.ecommerce.models.Product;
 import com.francisco.simple.ecommerce.repositories.CartRepositoryImpl;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +23,7 @@ public class CartServiceImpl implements CartServiceInterface {
         return cartRepository.getCartById(id);
     }
 
-    public Cart addProductsToCart(@NotNull String cartId, @NotNull List<Product> products) {
+    public Cart addProductsToCart(String cartId, List<Product> products) {
         try {
             Cart cart = getCartById(cartId);
             return cartRepository.addProductsToCart(cart, products);

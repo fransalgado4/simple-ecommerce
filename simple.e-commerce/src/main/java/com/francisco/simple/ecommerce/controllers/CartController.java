@@ -1,7 +1,6 @@
 package com.francisco.simple.ecommerce.controllers;
 
 import com.francisco.simple.ecommerce.exceptions.InvalidProductException;
-import com.francisco.simple.ecommerce.exceptions.ResourceNotFoundException;
 import com.francisco.simple.ecommerce.models.Cart;
 import com.francisco.simple.ecommerce.models.Product;
 import com.francisco.simple.ecommerce.services.CartServiceImpl;
