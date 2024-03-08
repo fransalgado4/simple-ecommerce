@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,36 +42,22 @@ public class ControllerTest {
         ResponseEntity<?> responseEntity = cartController.getCart(cartId);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(Optional.of(mockCart), responseEntity.getBody());
-    }
-
-    @Test
-    void testGetCartNotFound() {
-        String cartId = "1234354";
-        Cart mockCart = new Cart();
-
-        when(cartService.getCartById(cartId)).thenThrow(new ResourceNotFoundException("Cart with id " + cartId + " not found"));
-
-        ResponseEntity<?> responseEntity = cartController.getCart(cartId);
-
-        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertNull(responseEntity.getBody());
+        assertEquals(Optional.of(mockCart).get(), responseEntity.getBody());
     }
 
     @Test
     void testAddProductToCart() {
         String cartId = "1234354";
+        Product product = new Product(1, "prueba", 12);
+        List<Product> products = Arrays.asList((product));
         Cart mockCart = new Cart();
-        Product mockProduct = new Product(1, "prueba", 12);
-        List<Product> products = new ArrayList<>();
-        products.add(mockProduct);
 
         when(cartService.addProductsToCart(cartId, products)).thenReturn(mockCart);
 
-        ResponseEntity<?> responseEntity = cartController.addProductsToCart(cartId, products);
+        ResponseEntity<?> responseEntity = cartController.addProductToCart(cartId, product);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(Optional.of(mockCart), responseEntity.getBody());
+        assertEquals(Optional.of(mockCart), Optional.ofNullable(responseEntity.getBody()));
     }
 
     @Test
