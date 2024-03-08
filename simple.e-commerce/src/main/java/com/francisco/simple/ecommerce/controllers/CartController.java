@@ -34,22 +34,14 @@ public class CartController {
 
     @PutMapping("/{id}/product")
     public ResponseEntity<?> addProductToCart(@PathVariable String id, @RequestBody Product product) {
-        try {
-            List<Product> products = new ArrayList<>();
-            products.add(product);
-            return new ResponseEntity<>(cartService.addProductsToCart(id, products), HttpStatus.OK);
-        } catch (InvalidProductException e) {
-            throw new InvalidProductException(e.getMessage());
-        }
+        List<Product> products = new ArrayList<>();
+        products.add(product);
+        return new ResponseEntity<>(cartService.addProductsToCart(id, products), HttpStatus.OK);
     }
 
     @PutMapping("/{id}/products")
     public ResponseEntity<?> addProductsToCart(@PathVariable String id, @RequestBody List<Product> products) {
-        try {
-            return new ResponseEntity<>(cartService.addProductsToCart(id, products), HttpStatus.OK);
-        } catch (InvalidProductException e) {
-            throw new InvalidProductException(e.getMessage());
-        }
+        return new ResponseEntity<>(cartService.addProductsToCart(id, products), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
